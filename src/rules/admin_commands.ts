@@ -750,6 +750,100 @@ admin_commands:
   },
 };
 
+export const adminOldMultiCommandWarn: YAMLRule = {
+  name: "prop-admincommand-old-multi-warn",
+  type: "warn",
+  message: "Use of admin_commands.replicated, .swarm and .kubernetes together is depreciated",
+  test: {
+    AnyOf: {
+      path: "admin_commands",
+      pred: {
+        And: {
+          preds: [
+            { Exists: { path: "replicated" } },
+            { Exists: { path: "swarm" } },
+            { Exists: { path: "kubernetes" } },
+          ],
+        },
+      },
+    },
+  },
+  examples: {
+    wrong: [
+      {
+        description: "Valid multi (depreciated) command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  replicated:
+    component: DB
+    container: redis
+  swarm:
+    service: myapp
+  kubernetes:
+    selector: 
+      `,
+      },
+    ],
+    right: [
+      {
+        description: "Valid old-style command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  component: DB
+  image:
+    image_name: redis
+      `,
+      },
+      {
+        description: "Valid new-style replicated command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  component: DB
+  container: redis
+      `,
+      },
+      {
+        description: "Valid multi command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  replicated:
+    component: DB
+    container: redis
+  swarm:
+    service: myapp
+      `,
+      },
+      {
+        description: "Valid long multi command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  source:
+    replicated:
+      component: DB
+      container: redis
+    swarm:
+      service: myapp
+      `,
+      },
+    ],
+  },
+};
+
 export const all: YAMLRule[] = [
   adminCommandComponentExists,
   adminCommandShellAlias,
@@ -759,4 +853,5 @@ export const all: YAMLRule[] = [
   adminVerifyVerboseRequirementsPresent,
   adminVerifyOneTypePresent,
   adminOldCommandWarn,
+  adminOldMultiCommandWarn,
 ];
