@@ -680,6 +680,76 @@ admin_commands:
   },
 };
 
+export const adminOldCommandWarn: YAMLRule = {
+  name: "prop-admincommand-old-warn",
+  type: "warn",
+  message: "Use of admin_commands.image is depreciated",
+  test: {
+    AnyOf: {
+      path: "admin_commands",
+      pred: { Exists: { path: "image" } },
+    },
+  },
+  examples: {
+    wrong: [
+      {
+        description: "Valid old-style (depreciated) command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  component: DB
+  image:
+    image_name: redis
+      `,
+      },
+    ],
+    right: [
+      {
+        description: "Valid new-style replicated command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  component: DB
+  container: redis
+      `,
+      },
+      {
+        description: "Valid multi command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  replicated:
+    component: DB
+    container: redis
+  swarm:
+    service: myapp
+      `,
+      },
+      {
+        description: "Valid long multi command",
+        yaml: `
+---
+admin_commands:
+- alias: echo
+  command: [echo]
+  source:
+    replicated:
+      component: DB
+      container: redis
+    swarm:
+      service: myapp
+      `,
+      },
+    ],
+  },
+};
+
 export const all: YAMLRule[] = [
   adminCommandComponentExists,
   adminCommandShellAlias,
@@ -688,4 +758,5 @@ export const all: YAMLRule[] = [
   adminVerifyMultiRequirementsPresent,
   adminVerifyVerboseRequirementsPresent,
   adminVerifyOneTypePresent,
+  adminOldCommandWarn,
 ];
